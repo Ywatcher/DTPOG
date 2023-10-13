@@ -11,6 +11,14 @@ class Environment(Observer):
         self.concept_domains: Dict[str, type] = {}
         self.instances: Dict[str, List[GameObject]]
         self.event_manager = EventManager()
+        self.event_factory = self.event_manager.event_factory
+
+    def init_set_up_instances(self):
+        for domain in self.concept_domains:
+            for instance in self.instances[domain]:
+                instance.add_observer(self)
+                instance.set_event_factory(self.event_factory)
+
     @classmethod
     def convert_event(cls, event: Event) -> Dict[GameObject, Iterable[Event]]:
         pass

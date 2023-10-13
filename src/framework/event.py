@@ -4,6 +4,7 @@ from enum import Enum
 class EventType(Enum):
     pass
 
+
 class Event:
     def __init__(self, event_type: EventType, lifetime_total: int) -> None:
         self._event_type = event_type
@@ -22,9 +23,18 @@ class Event:
         return self.life_current > 0
 
 
+class EventFactory:
+    def __init__(self, event_manager: "EventManager") -> None:
+        self.event_manager = event_manager
+
+
 class EventManager:
     def __init__(self) -> None:
         self._all_events = []
+
+    @property
+    def event_factory(self) -> EventFactory:
+        pass
 
     def add_event(self, event: Event):
         self._all_events.append(event)
