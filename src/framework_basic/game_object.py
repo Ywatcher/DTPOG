@@ -1,7 +1,7 @@
-from typing import Iterator, List, Union
+from typing import List, Union
 from util.observer import ObservedSubject
 from collections.abc import Iterable
-from framework.event import Event, EventFactory
+from framework_basic.event import Event, EventFactory
 
 
 class GameObject(ObservedSubject):
