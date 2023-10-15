@@ -1,9 +1,10 @@
 from queue import Queue
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
-from demo_games.freddy.actions import Action, PressButtonAction, SelectCameraAction
+from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
+from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventType, MoveEvent, ObserveEvent
+from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventType, MoveEvent, ObserveEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
 from demo_games.freddy.enums import EnumAction, EnumCamera
@@ -23,11 +24,10 @@ class Room(GameObject):
 
 
 class Player(GameObject):
-    def __init__(self) -> None:
+    def __init__(self, interface: FreddyCmdInterface) -> None:
         super().__init__()
         self._event_factory: FreddyEventFactory = None
-        from demo_games.freddy.cmd_interface import FreddyCmdInterface
-        self.interface = FreddyCmdInterface()
+        self.interface = interface
 
     def receive_message(self, m: List[Event]):
         return super().receive_message(m)
@@ -79,7 +79,7 @@ class Office(Room):  # player
     def device_used(self) -> int:
         return np.sum(self.state[:4])
 
-    def update(self, obs_list: List[Event]):
+    def update(self, obs_list: List[Event], timer):
         # TODO:
         # if pressed button -> return office state and button flash(1s)
         # end previous obs
@@ -109,10 +109,11 @@ class _InstanceDict(TypedDict):
 
 
 class FreddyEnvironment(Environment):
-    def __init__(self) -> None:
+    def __init__(self, interface: FreddyCmdInterface) -> None:
         super().__init__()
         self.concept_domains = {
             "character": Character, "room": Room, "player": Player}
+        self.interface = interface
         self._init_instances()
         self._map_dict = {}
         self._current_room_observated: EnumCamera = EnumCamera.OfficeView
@@ -139,7 +140,7 @@ class FreddyEnvironment(Environment):
                 Room(name="Restrooms", locations=["far", "close"]),  # FIXME
                 Office()
             ],
-            "player": [Player()]
+            "player": [Player(self.interface)]
         }
         self._map_dict = {
             "character": {
@@ -165,14 +166,15 @@ class FreddyEnvironment(Environment):
             # produce observation event
             # send produced event to charactes observed
             from demo_games.freddy.events import ObserveEvent
-            if isinstance(event, PressButtonAction):
+            assert isinstance(event, PlayerActionEvent)
+            if isinstance(event.action, PressButtonAction):
                 # TODO: if press monitor button, switch current view and
                 # current obs, if current door open, send to hall
                 #
                 pass
-            elif isinstance(event, SelectCameraAction):
+            elif isinstance(event.action, SelectCameraAction):
                 # parse
-                cam_name = event.camera_name
+                cam_name = event.action.camera_name
                 room_to_see = cam_name.room()
                 characters_you_can_see = [
                     c for c in self.instances["character"]
@@ -188,6 +190,8 @@ class FreddyEnvironment(Environment):
                     obj: [new_observation_event]
                     for obj in objects_observed
                 }
+            elif isinstance(event.action, FreddyQuitAction):
+                self.game_end = True
         elif event.event_type == FreddyEventType.characterObservedEvent:
             # send to player
             return {self.get_player: [event]}

@@ -57,16 +57,16 @@ class EnumCamera(Enum):
 class EnumAction(Enum):
     selectCamera = 0
     PressButton = 1
+    FreddyQuit = 3
     # stop
 
 
 class EnumButton(Enum):
-    leftDoor = np.array([1, 0, 0, 0, 0, 0])
-    rightDoor = np.array([0, 1, 0, 0, 0, 0])
-    leftLight = np.array([0, 0, 1, 0, 0, 0])
-    rightLight = np.array([0, 0, 0, 1, 0, 0])
-    monitor = np.array([0, 0, 0, 0, 1, 0])
-
+    leftDoor = 1 #np.array([1, 0, 0, 0, 0, 0])
+    rightDoor = 2 # np.array([0, 1, 0, 0, 0, 0])
+    leftLight = 3 #np.array([0, 0, 1, 0, 0, 0])
+    rightLight = 3 #np.array([0, 0, 0, 1, 0, 0])
+    monitor = 5 #np.array([0, 0, 0, 0, 1, 0])
 
 
 if __name__ == "__main__":

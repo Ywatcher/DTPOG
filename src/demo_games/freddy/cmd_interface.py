@@ -35,6 +35,8 @@ class FreddyCmdParser(InputParsesr):
             None, InputParsesr._TerminateAction]:
         if s == "h" or s == "help":
             return None
+        elif s in ["q", "quit", "exit"]:
+            return self.TerminateAction
         elif self._monitor_up:
             return SelectCameraAction(EnumCamera.CAM1A)
         else:
@@ -46,6 +48,7 @@ class FreddyCmdInterface(CMDInterface):
         parser = FreddyCmdParser()
         super().__init__(parser)
         self.current_view = None
+        self.prompt = "(five nights at freddy's) "
 
     def monitor_up(self):
         self.lock.acquire()
@@ -57,5 +60,5 @@ class FreddyCmdInterface(CMDInterface):
         self.input_parser.monitor_down()
         self.lock.release()
 
-    def update_obs(self, obs_list: List[Event]):
+    def update_obs(self, obs_list: List[Event],_=None):
         pass

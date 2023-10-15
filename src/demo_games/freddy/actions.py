@@ -1,5 +1,3 @@
-from enum import Enum
-import numpy as np
 from demo_games.freddy.enums import EnumAction, EnumCamera, EnumButton
 
 class Action:
@@ -19,3 +17,6 @@ class SelectCameraAction(Action):
         self.camera_name = camera_name
 
 
+class FreddyQuitAction(Action):
+    def __init__(self) -> None:
+        super().__init__(EnumAction.FreddyQuit)

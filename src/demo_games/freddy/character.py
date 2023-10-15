@@ -1,8 +1,9 @@
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from framework_basic.event import Event
-from demo_games.freddy.events import FreddyEventFactory, FreddyEventType
+from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventType
 from framework_basic.game_object import GameObject
+
 
 class Character(GameObject):
     def __init__(self, name: str, tick_period: int,
@@ -34,7 +35,11 @@ class Character(GameObject):
         else:
             self.tick(obs_list, timer)
             self._tick_count = 0
-        print("{} updating".format(self.name))
+        # print("{} updating".format(self.name))
+        if self.is_observed(obs_list):
+            observated = CharacterObservedEvent(self.name, self.location)
+            self._event_factory.add_event(observated)
+            self.send_event(observated)
 
     def knock_door(self):
         self.send_event(
@@ -45,7 +50,6 @@ class Character(GameObject):
         self.send_event(
             self._event_factory.produce_jump_scare_event(character=self.name)
         )
-
 
 
 class Bonnie(Character):
@@ -77,18 +81,11 @@ class Freddy(Character):
                 "ShowStage",
                 "default"))
 
-    def update(self, obs_list: List[Event]):
-        if self.is_observed(obs_list):
-            self.state = None
-        else:
-            self.state = None
-
-    pass
+    def update(self, obs_list: List[Event], timer):
+        super().update(obs_list, timer)
 
 
 class Foxy(Character):
     def __init__(self) -> None:
         super().__init__(
             name="Foxy", tick_period=1900, location=("PirateCove", "hiding"))
-
-

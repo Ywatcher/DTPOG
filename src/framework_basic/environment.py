@@ -13,6 +13,7 @@ class Environment(Observer):
         self.event_manager = EventManager()
         self.event_factory = self.event_manager.event_factory
         self.timer = None  # FIXME
+        self.game_end = False
 
     def init_set_up_instances(self):
         for domain in self.concept_domains:
@@ -30,11 +31,12 @@ class Environment(Observer):
             messages_to_receiver = receiver_message_info[receiver]
             receiver.receive_message(messages_to_receiver)
 
-    def update(self):
+    def update(self, *args):
         # each instance reacts upon
         for domain in self.instances.keys():
             for instance in self.instances[domain]:
                 instance.call_update(self.timer)
+
         # previous reduce life
         # FIXME: the order
         # reduce each event's lifetime by 1

@@ -2,6 +2,7 @@ from queue import Queue
 from threading import Thread, Lock
 from abc import ABC
 from typing import List
+from demo_games.freddy.actions import FreddyQuitAction
 from framework_basic.event import Event
 
 
@@ -32,10 +33,14 @@ class CMDInterface(ABC):
         self.lock = Lock()
         # TODO: a boolean flag to indicate whether the thread
         # is started
+        self.prompt = "(game prompt)"
 
     def listen_input(self):
         while True:
-            input_str = input()
+            self.lock.acquire()
+            prompt = self.prompt
+            self.lock.release()
+            input_str = input(prompt)
             self.lock.acquire()
             parsed_input_obj = self.input_parser.parse(input_str)
             self.lock.release()
@@ -43,10 +48,14 @@ class CMDInterface(ABC):
                 if self.input_parser.TerminateAction != parsed_input_obj:
                     self.queue.put(input_str)
                 else:
+                    self.queue.put(FreddyQuitAction())
                     break
 
     def start(self):
         self.thread.start()
+
+    def join(self):
+        self.thread.join()
 
     def get_input(self):
         # TODO use try
@@ -55,5 +64,10 @@ class CMDInterface(ABC):
         return None
 
     @classmethod
-    def update_obs(cls, obs_list: List[Event]):
+    def update_obs(cls, obs_list: List[Event], _=None):
         pass
+
+    def set_prompt(self, s):
+        self.lock.acquire()
+        self.prompt = s
+        self.lock.release()
