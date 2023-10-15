@@ -1,7 +1,7 @@
 from sys import call_tracing
 from typing import Tuple, Union
 from demo_games.freddy.actions import Action
-from framework_basic.event import Event, EventFactory, EventType, StaticEvent
+from framework_basic.event import Event, EventFactory, EventManager, EventType, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
 
 
@@ -98,3 +98,13 @@ class FreddyEventFactory(EventFactory):
         e = PlayerActionEvent(action)
         self.event_manager.add_event(e)
         return e
+
+
+class FreddyEventMangager(EventManager):
+    def __init__(self) -> None:
+        super().__init__()
+        self._event_factory = FreddyEventFactory(event_manager=self)
+
+    @property
+    def event_factory(self) -> EventFactory:
+        return self._event_factory

@@ -7,10 +7,10 @@ from framework_basic.event import Event, EventManager
 
 
 class Environment(Observer):
-    def __init__(self) -> None:
+    def __init__(self, event_manager:EventManager) -> None:
         self.concept_domains: Dict[str, type] = {}
         self.instances: Dict[str, List[GameObject]]
-        self.event_manager = EventManager()
+        self.event_manager = event_manager
         self.event_factory = self.event_manager.event_factory
         self.timer = None  # FIXME
         self.game_end = False

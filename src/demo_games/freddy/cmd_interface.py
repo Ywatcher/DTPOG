@@ -37,6 +37,9 @@ class FreddyCmdParser(InputParsesr):
             return None
         elif s in ["q", "quit", "exit"]:
             return self.TerminateAction
+        elif s in ["v", "view"]:
+            # view current obs
+            pass
         elif self._monitor_up:
             return SelectCameraAction(EnumCamera.CAM1A)
         else:

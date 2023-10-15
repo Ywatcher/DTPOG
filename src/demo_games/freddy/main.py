@@ -5,6 +5,7 @@ from demo_games.freddy.game_objects import FreddyEnvironment
 if __name__ == "__main__":
     interface = FreddyCmdInterface()
     e = FreddyEnvironment(interface)
+    e.update()
     interface.start()
     # n = 10
     try:

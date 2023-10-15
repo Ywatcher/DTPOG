@@ -4,23 +4,12 @@ from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
 from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventType, MoveEvent, ObserveEvent, PlayerActionEvent
+from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventMangager, FreddyEventType, MoveEvent, ObserveEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
 from demo_games.freddy.enums import EnumAction, EnumCamera
 from demo_games.freddy.character import *
-
-
-class Room(GameObject):
-    def __init__(
-            self, name: str,
-            locations: Optional[List[str]] = None) -> None:
-        super().__init__()
-        self.name = name
-        if locations is not None:
-            self.locations = locations
-        else:
-            self.locations = ["default"]
+from demo_games.freddy.rooms import Room, Office
 
 
 class Player(GameObject):
@@ -42,66 +31,6 @@ class Player(GameObject):
             self.send_event(e)
 
 
-class Office(Room):  # player
-    def __init__(self) -> None:
-        super().__init__(
-            name="Office",
-            locations=[
-                "left door",
-                "right door",
-                "inside"
-            ]
-        )
-
-        # ldoor, rdoor, llight, rlight, monitor, power_remaining
-        # 0 for door closed/ light off/ monitor off
-        self.state = np.array([
-            0, 0, 0, 0, 0, 100
-        ])
-
-    @property
-    def door_closed(self) -> Dict[str, bool]:
-        return {"left": self.state[0], "right": self.state[1]}
-
-    @property
-    def is_light_on(self) -> Dict[str, bool]:
-        return {"left": self.state[1], "right": self.state[2]}
-
-    @property
-    def is_monitor_on(self) -> bool:
-        return self.state[3]
-
-    @property
-    def power_remaining(self) -> int:
-        return self.state[4]
-
-    @property
-    def device_used(self) -> int:
-        return np.sum(self.state[:4])
-
-    def update(self, obs_list: List[Event], timer):
-        # TODO:
-        # if pressed button -> return office state and button flash(1s)
-        # end previous obs
-        if True:  # if player action in obs_list, door up/close, monitor up/close
-            # or light off event
-            # or power used up
-            # FIXME
-            pass
-        # if light off or light on:
-        # send light off event
-        # light off is successor of light on
-        # if light on, send observe event to ...
-        pass
-
-
-class PirateCove(Room):
-    def __init__(self):
-        super().__init__(name="PirateCove", locations=["default"])
-        self.states = ["hiding", "peering", "to escape"]  # FIXME
-        self.state_here = "hiding"
-
-
 class _InstanceDict(TypedDict):
     character: List[Character]
     room: List[Room]
@@ -110,7 +39,7 @@ class _InstanceDict(TypedDict):
 
 class FreddyEnvironment(Environment):
     def __init__(self, interface: FreddyCmdInterface) -> None:
-        super().__init__()
+        super().__init__(FreddyEventMangager())
         self.concept_domains = {
             "character": Character, "room": Room, "player": Player}
         self.interface = interface
@@ -118,10 +47,7 @@ class FreddyEnvironment(Environment):
         self._map_dict = {}
         self._current_room_observated: EnumCamera = EnumCamera.OfficeView
         self._current_player_observation_event: ObserveEvent = None
-
-    def init_set_up_instances(self):
-        print("called")
-        return super().init_set_up_instances()
+        self.init_set_up_instances()
 
     def _init_instances(self):
         self.instances: _InstanceDict = {
@@ -131,7 +57,12 @@ class FreddyEnvironment(Environment):
             "room": [
                 Room(name="ShowStage"),
                 Room(name="DiningArea", locations=["far", "close", "default"]),
-                PirateCove(),
+                Room(
+                    name="PirateCove",
+                    locations=[
+                        "hiding",
+                        "peering",
+                        "escaped"]),
                 Room(name="WestHallA"),
                 Room(name="WestHallB"),
                 Room(name="EastHallA", locations=["far", "close"]),
@@ -192,6 +123,7 @@ class FreddyEnvironment(Environment):
                 }
             elif isinstance(event.action, FreddyQuitAction):
                 self.game_end = True
+                return {}
         elif event.event_type == FreddyEventType.characterObservedEvent:
             # send to player
             return {self.get_player: [event]}
