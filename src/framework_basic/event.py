@@ -49,6 +49,9 @@ class EventFactory:
     def __init__(self, event_manager: "EventManager") -> None:
         self.event_manager = event_manager
 
+    def add_event(self, e):
+        self.event_manager.add_event(e)
+
 
 class EventManager:
     def __init__(self) -> None:

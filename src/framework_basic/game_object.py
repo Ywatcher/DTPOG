@@ -15,13 +15,13 @@ class GameObject(ObservedSubject):
         self._event_factory = event_factory
 
     @classmethod
-    def update(cls, event_obs: List[Event]):
+    def update(cls, event_obs: List[Event], timer):
         # TODO: interpret event as dict
         pass
 
-    def call_update(self):
+    def call_update(self, timer):
         # use old event buffer to update
-        self.update(self._received_event_buffer_old)
+        self.update(self._received_event_buffer_old, timer)
 
     def refresh_event_buffer(self):
         # remove all dead event and
@@ -33,9 +33,5 @@ class GameObject(ObservedSubject):
         ] + self._received_event_buffer_new
         self._received_event_buffer_new = []
 
-    def receive_message(self, m: Union[Event, Iterable[Event]]):
-        if isinstance(m, Iterable):
-            self._received_event_buffer_new += list(m)
-        else:
-            assert isinstance(m, Event)
-            self._received_event_buffer_new.append(m)
+    def receive_message(self, m: Iterable[Event]):
+        self._received_event_buffer_new += list(m)

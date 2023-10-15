@@ -12,6 +12,7 @@ class Environment(Observer):
         self.instances: Dict[str, List[GameObject]]
         self.event_manager = EventManager()
         self.event_factory = self.event_manager.event_factory
+        self.timer = None  # FIXME
 
     def init_set_up_instances(self):
         for domain in self.concept_domains:
@@ -33,7 +34,7 @@ class Environment(Observer):
         # each instance reacts upon
         for domain in self.instances.keys():
             for instance in self.instances[domain]:
-                instance.call_update()
+                instance.call_update(self.timer)
         # previous reduce life
         # FIXME: the order
         # reduce each event's lifetime by 1
