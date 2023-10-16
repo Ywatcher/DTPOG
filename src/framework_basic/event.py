@@ -28,7 +28,7 @@ class Event(ABC):
     @classmethod
     def end(cls) -> List["Event"]:
         # return successor events
-        pass
+        return []
 
 
 class StaticEvent(Event):

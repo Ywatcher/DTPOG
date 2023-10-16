@@ -1,28 +1,63 @@
-from typing import Union, List
+from abc import ABC
+from enum import Enum
+from typing import Dict, Union, List
 from demo_games.freddy.actions import *
 from user_interfaces.cmd_interface import InputParsesr, CMDInterface
 from demo_games.freddy.events import *
 
 
-class View:
+class View(ABC):
     def __eq__(self, __value: object) -> bool:
-        # TODO
+        raise NotImplemented
+
+    @staticmethod
+    def from_obs_list(obs_list: List[Event]) -> "View":
         pass
 
 
 class RoomView(View):
-    pass
+    def __init__(self, room: str, character_obs: Dict[str, str]) -> None:
+        # room: room name
+        # character_obs: character and its exact locations in this room
+        self.room = room
+        self.character_obs = character_obs
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, RoomView):
+            return False
+        else:
+            return self.room == __value.room and \
+                     self.character_obs == __value.character_obs
+
+    def __sub__(self, other: "View"):
+        # TODO
+        return self
 
 
 class OfficeView(View):
-    pass
+    def __init__(self, office_state: np.ndarray,
+                 character_obs: Dict[str, str]) -> None:
+        self.character_obs = character_obs
+        self.office_state = office_state
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, OfficeView):
+            return False
+        else:
+            return np.all(self.office_state == __value.office_state) and \
+                        self.character_obs == __value.character_obs
 
 
 class FreddyCmdParser(InputParsesr):
 
+    class FreddyCmdActions(Enum):
+        checkViewAction = 0
+
     def __init__(self) -> None:
         super().__init__()
         self._monitor_up = False
+        self.CheckViewAction = \
+            FreddyCmdParser.FreddyCmdActions.checkViewAction
 
     def monitor_up(self):
         self._monitor_up = True
@@ -39,19 +74,20 @@ class FreddyCmdParser(InputParsesr):
             return self.TerminateAction
         elif s in ["v", "view"]:
             # view current obs
-            pass
+            return self.CheckViewAction
         elif self._monitor_up:
             return SelectCameraAction(EnumCamera.CAM1A)
         else:
             return PressButtonAction(EnumButton.monitor)
 
 
-class FreddyCmdInterface(CMDInterface):
+class FreddyCmdInterface(CMDInterface): # CMDInterface[FreddyCmdParser]
     def __init__(self) -> None:
         parser = FreddyCmdParser()
         super().__init__(parser)
         self.current_view = None
         self.prompt = "(five nights at freddy's) "
+        self._obs_list = []
 
     def monitor_up(self):
         self.lock.acquire()
@@ -63,5 +99,27 @@ class FreddyCmdInterface(CMDInterface):
         self.input_parser.monitor_down()
         self.lock.release()
 
-    def update_obs(self, obs_list: List[Event],_=None):
-        pass
+    def respond(self, parsed_input_obj) -> bool:
+        # FIXME : -> respond on cmd action
+        if self.input_parser.TerminateAction == parsed_input_obj:
+            self.queue.put(FreddyQuitAction())
+            print("quit game")
+            return True
+        elif self.input_parser.CheckViewAction == parsed_input_obj:
+            print("check view")
+            self.lock.acquire()
+            print(self._obs_list)
+            self.lock.release()
+            # if len(self._obs_list is 0) dont print
+            return False
+        else:
+            self.queue.put(parsed_input_obj)
+            return False
+
+
+
+    def update_obs(self, obs_list: List[Event], _=None):
+        # FIXME: use view instead of a List
+        self.lock.acquire()
+        self._obs_list = obs_list
+        self.lock.release()

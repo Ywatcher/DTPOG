@@ -6,7 +6,10 @@ from demo_games.freddy.actions import FreddyQuitAction
 from framework_basic.event import Event
 
 
+# TODO: class CmdAction
+
 class InputParsesr(ABC):
+
     class _TerminateAction:
         def __eq__(self, __value: object) -> bool:
             return isinstance(__value, InputParsesr._TerminateAction)
@@ -45,11 +48,17 @@ class CMDInterface(ABC):
             parsed_input_obj = self.input_parser.parse(input_str)
             self.lock.release()
             if parsed_input_obj is not None:
-                if self.input_parser.TerminateAction != parsed_input_obj:
-                    self.queue.put(input_str)
-                else:
-                    self.queue.put(FreddyQuitAction())
+                to_stop = self.respond(parsed_input_obj)
+                if to_stop:
                     break
+
+    def respond(self, parsed_input_obj) -> bool:
+        if self.input_parser.TerminateAction != parsed_input_obj:
+            self.queue.put(parsed_input_obj)
+            return False
+        else:
+            self.queue.put(FreddyQuitAction())
+            return True
 
     def start(self):
         self.thread.start()

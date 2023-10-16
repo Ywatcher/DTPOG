@@ -4,7 +4,7 @@ from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
 from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventMangager, FreddyEventType, MoveEvent, ObserveEvent, PlayerActionEvent
+from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventMangager, FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
 from demo_games.freddy.enums import EnumAction, EnumCamera
@@ -148,6 +148,14 @@ class FreddyEnvironment(Environment):
             else:
                 # send nothing
                 return {}
+        elif isinstance(event, OfficeInfoEvent):
+            characters_and_player = self.instances["character"] + \
+                self.instances["player"]
+            return {
+                obj: [event]
+                for obj in characters_and_player
+            }
+
         else:
             raise ValueError
             pass

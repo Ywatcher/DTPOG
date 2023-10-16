@@ -3,6 +3,7 @@ from typing import Tuple, Union
 from demo_games.freddy.actions import Action
 from framework_basic.event import Event, EventFactory, EventManager, EventType, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
+import numpy as np
 
 
 class FreddyEventType(EventType):
@@ -13,6 +14,7 @@ class FreddyEventType(EventType):
     hitDoorEvent = 5
     foxyRunEvent = 6
     playerActionEvent = 7
+    officeInfoEvent = 8
 
 
 class ObserveEvent(StaticEvent):
@@ -62,8 +64,15 @@ class PlayerActionEvent(Event):
 class CharacterObservedEvent(Event):
     def __init__(self, character, location: Tuple[str, str]) -> None:
         super().__init__(FreddyEventType.characterObservedEvent, 1)
-        self.info = character = character
+        self.character = character
         self.location = location
+
+    def __repr__(self) -> str:
+        return "{}:{} at {}".format(
+            self.event_type.name,
+            self.character,
+            self.location
+        )
 
 
 class JumpScareEvent(Event):
@@ -83,6 +92,18 @@ class JumpScareEvent(Event):
 class FoxyRunEvent(Event):
     def __init__(self) -> None:
         super().__init__(FreddyEventType.foxyRunEvent, 30)
+
+
+class OfficeInfoEvent(Event):
+    def __init__(self,
+                 office_state: np.ndarray) -> None:
+        super().__init__(FreddyEventType.officeInfoEvent, lifetime_total=1)
+        # TODO: use static event instead
+        # now: event with lifetime 1
+        self.office_state = office_state
+
+    def __repr__(self) -> str:
+        return "{}: {}".format(self.event_type.name, self.office_state)
 
 
 class FreddyEventFactory(EventFactory):
