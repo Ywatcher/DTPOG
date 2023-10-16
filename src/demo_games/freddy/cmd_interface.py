@@ -68,13 +68,26 @@ class FreddyCmdParser(InputParser):
     def parse(self, s: str) -> Union[
             Action,
             None, InputParser._TerminateAction]:
-        if s == "h" or s == "help":
+        command_list = s.split(' ')
+        command_name = command_list[0]
+        args = command_list[1:]
+        if command_name in["h" , "help"]:
             return None
-        elif s in ["q", "quit", "exit"]:
+        elif command_name in ["q", "quit", "exit"]:
             return self.TerminateAction
-        elif s in ["v", "view"]:
+        elif command_name in ["v", "view"]:
             # view current obs
             return self.CheckViewAction
+        if command_name in ["m"]:
+            action = PressButtonAction(EnumButton.monitor)
+            return action
+        elif command_name in ["mu"]:
+            # if monitor down and mu, up and md, or "m"
+            action = PressButtonAction(EnumButton.monitor, "up")
+            return action
+        elif command_name in ["md"]:
+            action = PressButtonAction(EnumButton.monitor, "down")
+            return action
         elif self._monitor_up:
             return SelectCameraAction(EnumCamera.CAM1A)
         else:

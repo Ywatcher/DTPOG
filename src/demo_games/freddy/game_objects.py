@@ -5,7 +5,7 @@ from framework_basic.event import Event, EventFactory, EventManager
 from demo_games.freddy.events import CharacterObservedEvent, FreddyEvent, FreddyEventManager,  FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
-from demo_games.freddy.enums import EnumAction, EnumCamera
+from demo_games.freddy.enums import EnumAction, EnumButton, EnumCamera
 from demo_games.freddy.character import *
 from demo_games.freddy.rooms import Room, Office
 
@@ -86,8 +86,25 @@ class FreddyEnvironment(Environment):
     def get_player(self) -> Player:
         return self.instances["player"][0]
 
+    @property
+    def get_office(self) -> Office:
+        return self.get_room("Office")
+
     def get_room(self, room_name: str) -> Room:
         return self._map_dict["room"][room_name]
+
+    def event_from_button(self, button:EnumButton) -> FreddyEvent:
+        if button == EnumButton.leftDoor:
+            is_left_door_closed = self.get_office.door_closed["left"]
+            pass
+        elif button == EnumButton.rightDoor:
+            pass
+        elif button == EnumButton.leftLight:
+            pass
+        elif button == EnumButton.rightLight:
+            pass
+        elif button == EnumButton.monitor:
+            pass
 
     def convert_event(
         self, event: Event
@@ -102,7 +119,7 @@ class FreddyEnvironment(Environment):
                 # TODO: if press monitor button, switch current view and
                 # current obs, if current door open, send to hall
                 #
-                pass
+                return {}
             elif isinstance(event.action, SelectCameraAction):
                 # parse
                 cam_name = event.action.camera_name

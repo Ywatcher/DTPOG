@@ -1,4 +1,6 @@
+from typing import Literal
 from demo_games.freddy.enums import EnumAction, EnumCamera, EnumButton
+
 
 class Action:
     def __init__(self, action_type: EnumAction) -> None:
@@ -6,9 +8,14 @@ class Action:
 
 
 class PressButtonAction(Action):
-    def __init__(self, button: EnumButton):
+    def __init__(
+        self,
+        button: EnumButton,
+        movement: Literal["up", "down", "default"] = "default"
+    ):
         super().__init__(EnumAction.PressButton)
         self.button = button
+        self.movement = movement
 
 
 class SelectCameraAction(Action):

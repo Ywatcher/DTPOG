@@ -1,6 +1,6 @@
 from enum import Enum
 from sys import call_tracing
-from typing import Tuple, Union
+from typing import Literal, Tuple, Union
 from demo_games.freddy.actions import Action
 from framework_basic.event import Event, EventFactory, EventManager, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
@@ -17,6 +17,7 @@ class FreddyEventType(Enum):
     playerActionEvent = 7
     officeInfoEvent = 8
     knockDoorEvent = 9
+    deviceMovementEvent = 10
 
 
 class ObserveEvent(StaticEvent[FreddyEventType]):
@@ -28,13 +29,15 @@ class ObserveEvent(StaticEvent[FreddyEventType]):
     def end(self):
         return []
 
+
 # FIXME
 knock_door_time = 6
+
+
 class KnockDoorEvent(Event[FreddyEventType]):
-    def __init__(self, character:str) -> None:
+    def __init__(self, character: str) -> None:
         super().__init__(FreddyEventType.knockDoorEvent, knock_door_time)
         self.character = character
-
 
 
 class MoveEvent(Event[FreddyEventType]):
@@ -114,6 +117,7 @@ class OfficeInfoEvent(Event[FreddyEventType]):
 
 FreddyEvent = Event[FreddyEventType]
 
+
 class FreddyEventManager(EventManager[FreddyEvent]):
 
     def __init__(self) -> None:
@@ -123,3 +127,27 @@ class FreddyEventManager(EventManager[FreddyEvent]):
     @property
     def event_factory(self) -> EventFactory[FreddyEvent]:
         return self._event_factory
+
+
+class DeviceMovementEvent(FreddyEvent):
+    def __init__(
+        self, lifetime_total: int,
+        device: str,  # FIXME
+        movement: Literal["up", "down"]
+    ) -> None:
+        super().__init__(
+            FreddyEventType.deviceMovementEvent,
+            lifetime_total
+        )
+        self.device = device
+        self.movement = movement
+
+    def __repr__(self) -> str:
+        return "Event: {} {}".format(
+            self.device, self.movement
+        )
+
+    # TODO:
+    # hook start and end
+
+# TODO: move to event factory

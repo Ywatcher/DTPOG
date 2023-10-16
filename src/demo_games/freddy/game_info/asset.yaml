@@ -8,3 +8,7 @@ foxy:
       7 # FIXME
     audio:
       some.mp3
+  foxy_run:
+    frames:
+      ...
+    # TODO
