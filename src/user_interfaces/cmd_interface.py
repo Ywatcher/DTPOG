@@ -1,24 +1,24 @@
 from queue import Queue
 from threading import Thread, Lock
 from abc import ABC
-from typing import List
+from typing import List, Generic, Type, TypeVar
 from demo_games.freddy.actions import FreddyQuitAction
 from framework_basic.event import Event
 
 
 # TODO: class CmdAction
 
-class InputParsesr(ABC):
+class InputParser(ABC):
 
     class _TerminateAction:
         def __eq__(self, __value: object) -> bool:
-            return isinstance(__value, InputParsesr._TerminateAction)
+            return isinstance(__value, InputParser._TerminateAction)
 
     def __init__(self) -> None:
-        self._terminateAction = InputParsesr._TerminateAction()
+        self._terminateAction = InputParser._TerminateAction()
 
     @property
-    def TerminateAction(self) -> "InputParsesr._TerminateAction":
+    def TerminateAction(self) -> "InputParser._TerminateAction":
         return self._terminateAction
 
     @classmethod
@@ -26,8 +26,11 @@ class InputParsesr(ABC):
         pass
 
 
-class CMDInterface(ABC):
-    def __init__(self, input_parser: InputParsesr) -> None:
+parser_T = TypeVar("parser_T", InputParser, Type[InputParser])
+
+
+class CMDInterface(ABC, Generic[parser_T]):
+    def __init__(self, input_parser: parser_T) -> None:
         self.queue = Queue()
         self.thread = Thread(
             target=self.listen_input

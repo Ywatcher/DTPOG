@@ -1,13 +1,13 @@
 from collections import Iterable
-from typing import List, Dict
+from typing import Generic, List, Dict
 
 from framework_basic.game_object import GameObject
 from util.observer import Observer
-from framework_basic.event import Event, EventManager
+from framework_basic.event import Event, EventManager, event_T
 
 
-class Environment(Observer):
-    def __init__(self, event_manager:EventManager) -> None:
+class Environment(Observer, Generic[event_T]):
+    def __init__(self, event_manager: EventManager[event_T]) -> None:
         self.concept_domains: Dict[str, type] = {}
         self.instances: Dict[str, List[GameObject]]
         self.event_manager = event_manager
@@ -22,10 +22,12 @@ class Environment(Observer):
                 instance.set_event_factory(self.event_factory)
 
     @classmethod
-    def convert_event(cls, event: Event) -> Dict[GameObject, Iterable[Event]]:
-        pass
+    def convert_event(
+            cls, event: event_T
+    ) -> Dict[GameObject[event_T], Iterable[event_T]]:
+        raise NotImplementedError
 
-    def update_as_observer(self, event: Event):
+    def update_as_observer(self, event: event_T):
         receiver_message_info = self.convert_event(event)
         for receiver in receiver_message_info.keys():
             messages_to_receiver = receiver_message_info[receiver]

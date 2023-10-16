@@ -1,12 +1,13 @@
+from enum import Enum
 from sys import call_tracing
 from typing import Tuple, Union
 from demo_games.freddy.actions import Action
-from framework_basic.event import Event, EventFactory, EventManager, EventType, StaticEvent
+from framework_basic.event import Event, EventFactory, EventManager, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
 import numpy as np
 
 
-class FreddyEventType(EventType):
+class FreddyEventType(Enum):
     observeEvent = 0
     moveEvent = 1
     jumpScareEvent = 2
@@ -15,9 +16,10 @@ class FreddyEventType(EventType):
     foxyRunEvent = 6
     playerActionEvent = 7
     officeInfoEvent = 8
+    knockDoorEvent = 9
 
 
-class ObserveEvent(StaticEvent):
+class ObserveEvent(StaticEvent[FreddyEventType]):
     def __init__(self, camera_name: EnumCamera) -> None:
         super().__init__(FreddyEventType.observeEvent)
         # TODO: other information
@@ -26,12 +28,16 @@ class ObserveEvent(StaticEvent):
     def end(self):
         return []
 
+# FIXME
+knock_door_time = 6
+class KnockDoorEvent(Event[FreddyEventType]):
+    def __init__(self, character:str) -> None:
+        super().__init__(FreddyEventType.knockDoorEvent, knock_door_time)
+        self.character = character
 
-class KnockDoorEvent(Event):
-    pass
 
 
-class MoveEvent(Event):
+class MoveEvent(Event[FreddyEventType]):
     def __init__(
         self,
         character: str,
@@ -45,7 +51,7 @@ class MoveEvent(Event):
         self.to_ = to_
 
 
-class PlayerActionEvent(Event):
+class PlayerActionEvent(Event[FreddyEventType]):
     # select monitor + camera_name
     #  -> create obs event
     #  -> disable previous obs event
@@ -61,7 +67,7 @@ class PlayerActionEvent(Event):
         self.action = action
 
 
-class CharacterObservedEvent(Event):
+class CharacterObservedEvent(Event[FreddyEventType]):
     def __init__(self, character, location: Tuple[str, str]) -> None:
         super().__init__(FreddyEventType.characterObservedEvent, 1)
         self.character = character
@@ -75,7 +81,7 @@ class CharacterObservedEvent(Event):
         )
 
 
-class JumpScareEvent(Event):
+class JumpScareEvent(Event[FreddyEventType]):
     def __init__(
         self,
         character: str,
@@ -89,12 +95,12 @@ class JumpScareEvent(Event):
         pass
 
 
-class FoxyRunEvent(Event):
+class FoxyRunEvent(Event[FreddyEventType]):
     def __init__(self) -> None:
         super().__init__(FreddyEventType.foxyRunEvent, 30)
 
 
-class OfficeInfoEvent(Event):
+class OfficeInfoEvent(Event[FreddyEventType]):
     def __init__(self,
                  office_state: np.ndarray) -> None:
         super().__init__(FreddyEventType.officeInfoEvent, lifetime_total=1)
@@ -106,26 +112,14 @@ class OfficeInfoEvent(Event):
         return "{}: {}".format(self.event_type.name, self.office_state)
 
 
-class FreddyEventFactory(EventFactory):
-    def produce_jump_scare_event(self, character: str) -> JumpScareEvent:
-        pass
+FreddyEvent = Event[FreddyEventType]
 
-    def produce_knock_door_event(self, character: str) -> KnockDoorEvent:
-        pass
+class FreddyEventManager(EventManager[FreddyEvent]):
 
-    def produce_action_event(
-            self,
-            action: Action) -> PlayerActionEvent:
-        e = PlayerActionEvent(action)
-        self.event_manager.add_event(e)
-        return e
-
-
-class FreddyEventMangager(EventManager):
     def __init__(self) -> None:
         super().__init__()
-        self._event_factory = FreddyEventFactory(event_manager=self)
+        self._event_factory: EventFactory[FreddyEvent] = EventFactory(self)
 
     @property
-    def event_factory(self) -> EventFactory:
+    def event_factory(self) -> EventFactory[FreddyEvent]:
         return self._event_factory

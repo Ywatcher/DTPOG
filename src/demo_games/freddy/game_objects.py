@@ -1,10 +1,8 @@
-from queue import Queue
-import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
 from demo_games.freddy.cmd_interface import FreddyCmdInterface
-from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventMangager, FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
+from framework_basic.event import Event, EventFactory, EventManager
+from demo_games.freddy.events import CharacterObservedEvent, FreddyEvent, FreddyEventManager,  FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
 from demo_games.freddy.enums import EnumAction, EnumCamera
@@ -12,22 +10,22 @@ from demo_games.freddy.character import *
 from demo_games.freddy.rooms import Room, Office
 
 
-class Player(GameObject):
+class Player(GameObject[FreddyEvent]):
     def __init__(self, interface: FreddyCmdInterface) -> None:
         super().__init__()
-        self._event_factory: FreddyEventFactory = None
         self.interface = interface
 
-    def receive_message(self, m: List[Event]):
+    def receive_message(self, m: List[FreddyEvent]):
         return super().receive_message(m)
 
-    def update(self, obs_list: List[Event], timer):
+    def update(self, obs_list: List[FreddyEvent], timer):
         # do not show the list of event since
         # it has been showed when received
         self.interface.update_obs(obs_list)
         a: Action = self.interface.get_input()  # get all
         if a is not None:
-            e = self._event_factory.produce_action_event(a)
+            e = PlayerActionEvent(a)
+            self._event_factory.add_event(e)
             self.send_event(e)
 
 
@@ -39,7 +37,7 @@ class _InstanceDict(TypedDict):
 
 class FreddyEnvironment(Environment):
     def __init__(self, interface: FreddyCmdInterface) -> None:
-        super().__init__(FreddyEventMangager())
+        super().__init__(FreddyEventManager())
         self.concept_domains = {
             "character": Character, "room": Room, "player": Player}
         self.interface = interface
@@ -91,7 +89,9 @@ class FreddyEnvironment(Environment):
     def get_room(self, room_name: str) -> Room:
         return self._map_dict["room"][room_name]
 
-    def convert_event(self, event: Event) -> Dict[GameObject, Iterable[Event]]:
+    def convert_event(
+        self, event: Event
+    ) -> Dict[GameObject[FreddyEvent], Iterable[FreddyEvent]]:
         # if event.event_type == FreddyEventType.observeEvent:
         if event.event_type == FreddyEventType.playerActionEvent:
             # produce observation event

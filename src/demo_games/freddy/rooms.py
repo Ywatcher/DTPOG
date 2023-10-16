@@ -4,14 +4,14 @@ from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
 from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEventFactory, FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
+from demo_games.freddy.events import CharacterObservedEvent,FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
 from framework_basic.game_object import GameObject
 from framework_basic.environment import Environment
 from demo_games.freddy.enums import EnumAction, EnumCamera
 from demo_games.freddy.character import *
 
 
-class Room(GameObject):
+class Room(GameObject[FreddyEvent]):
     def __init__(
             self, name: str,
             locations: Optional[List[str]] = None) -> None:
@@ -62,7 +62,7 @@ class Office(Room):  # player
     def device_used(self) -> int:
         return np.sum(self.state[:4])
 
-    def update(self, obs_list: List[Event], timer):
+    def update(self, obs_list: List[FreddyEvent], timer):
         # TODO:
         # if pressed button -> return office state and button flash(1s)
         # end previous obs

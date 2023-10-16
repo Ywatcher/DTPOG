@@ -1,0 +1,10 @@
+foxy:
+  jump_scare:
+    frames:
+      - 1.jpg
+      - 2.jpg
+        # ...
+    duration:
+      7 # FIXME
+    audio:
+      some.mp3

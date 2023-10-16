@@ -5,8 +5,6 @@ from demo_games.freddy.game_objects import FreddyEnvironment
 if __name__ == "__main__":
     interface = FreddyCmdInterface()
     e = FreddyEnvironment(interface)
-    print("u0")
-    # e.update()
     interface.start()
     try:
         while not e.game_end:

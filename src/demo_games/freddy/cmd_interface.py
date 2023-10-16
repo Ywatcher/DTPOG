@@ -2,7 +2,7 @@ from abc import ABC
 from enum import Enum
 from typing import Dict, Union, List
 from demo_games.freddy.actions import *
-from user_interfaces.cmd_interface import InputParsesr, CMDInterface
+from user_interfaces.cmd_interface import InputParser, CMDInterface
 from demo_games.freddy.events import *
 
 
@@ -48,7 +48,7 @@ class OfficeView(View):
                         self.character_obs == __value.character_obs
 
 
-class FreddyCmdParser(InputParsesr):
+class FreddyCmdParser(InputParser):
 
     class FreddyCmdActions(Enum):
         checkViewAction = 0
@@ -67,7 +67,7 @@ class FreddyCmdParser(InputParsesr):
 
     def parse(self, s: str) -> Union[
             Action,
-            None, InputParsesr._TerminateAction]:
+            None, InputParser._TerminateAction]:
         if s == "h" or s == "help":
             return None
         elif s in ["q", "quit", "exit"]:
@@ -81,7 +81,9 @@ class FreddyCmdParser(InputParsesr):
             return PressButtonAction(EnumButton.monitor)
 
 
-class FreddyCmdInterface(CMDInterface): # CMDInterface[FreddyCmdParser]
+class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
+    input_parser: FreddyCmdParser
+
     def __init__(self) -> None:
         parser = FreddyCmdParser()
         super().__init__(parser)
@@ -116,9 +118,7 @@ class FreddyCmdInterface(CMDInterface): # CMDInterface[FreddyCmdParser]
             self.queue.put(parsed_input_obj)
             return False
 
-
-
-    def update_obs(self, obs_list: List[Event], _=None):
+    def update_obs(self, obs_list: List[FreddyEvent], _=None):
         # FIXME: use view instead of a List
         self.lock.acquire()
         self._obs_list = obs_list
