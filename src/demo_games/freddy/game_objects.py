@@ -60,7 +60,7 @@ class FreddyEnvironment(Environment):
                     locations=[
                         "hiding",
                         "peering",
-                        "escaped"]),
+                        "to_escape"]),
                 Room(name="WestHallA"),
                 Room(name="WestHallB"),
                 Room(name="EastHallA", locations=["far", "close"]),

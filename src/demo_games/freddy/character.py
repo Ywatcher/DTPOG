@@ -6,6 +6,8 @@ from framework_basic.game_object import GameObject
 
 
 class Character(GameObject):
+    route: List[Tuple[str, str]]
+
     def __init__(
         self,
         name: str, tick_period: int,
@@ -59,6 +61,18 @@ class Character(GameObject):
 
 
 class Bonnie(Character):
+    route = [
+        ("ShowStage", "default"),
+        ("DiningArea", "far"),
+        ("DiningArea", "close"),
+        ("Backstage", "far"),
+        ("Backstage", "close"),
+        ("WestHallA", "default"),
+        ("SupplyCloset", "default"),
+        ("WestHallB", "default"),
+        ("Office", "leftDoor")
+    ]
+
     def __init__(self) -> None:
         super().__init__(
             name="Bonnie",
@@ -69,6 +83,18 @@ class Bonnie(Character):
 
 
 class Chica(Character):
+    route = [
+        ("ShowStage", "default"),
+        ("DiningArea", "far"),
+        ("DiningArea", "close"),
+        ("Restrooms", "far"),
+        ("Restrooms", "close"),
+        ("EastHallA", "far"),
+        ("EastHallA", "close"),
+        ("EastHallB", "default"),
+        ("Office", "rightDoor")
+    ]
+
     def __init__(self) -> None:
         super().__init__(
             name="Chica",
@@ -79,6 +105,14 @@ class Chica(Character):
 
 
 class Freddy(Character):
+    route = [
+        ("ShowStage", "default"),
+        ("DiningArea", "default"),
+        ("Restrooms", "default"),
+        ("EastHallA", "default"),
+        ("EastHallB", "default"),
+    ]
+
     def __init__(self) -> None:
         super().__init__(
             name="Freddy",
@@ -92,6 +126,13 @@ class Freddy(Character):
 
 
 class Foxy(Character):
+    route = [
+        ("PirateCove", "hiding"),
+        ("PirateCove", "peering"),
+        ("PirateCove", "to_escape"),
+        ("WestHallB", "default")
+    ]
+
     def __init__(self) -> None:
         super().__init__(
             name="Foxy", tick_period=1900, location=("PirateCove", "hiding"))
