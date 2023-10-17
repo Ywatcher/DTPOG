@@ -1,14 +1,8 @@
-from queue import Queue
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
-from demo_games.freddy.actions import Action, FreddyQuitAction, PressButtonAction, SelectCameraAction
-from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent,FreddyEventType, MoveEvent, ObserveEvent, OfficeInfoEvent, PlayerActionEvent
+from demo_games.freddy.events import *
 from framework_basic.game_object import GameObject
-from framework_basic.environment import Environment
-from demo_games.freddy.enums import EnumAction, EnumCamera
-from demo_games.freddy.character import *
 
 
 class Room(GameObject[FreddyEvent]):
@@ -76,6 +70,7 @@ class Office(Room):  # player
         # light off is successor of light on
         # if light on, send observe event to ...
         pass
+        # state event should be at last
         e = OfficeInfoEvent(self.state)
         self._event_factory.add_event(e)
         self.send_event(e)

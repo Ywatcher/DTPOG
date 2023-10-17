@@ -1,6 +1,7 @@
 from enum import Enum
+import re
 from sys import call_tracing
-from typing import Literal, Tuple, Union
+from typing import Callable, List, Literal, Tuple, Union
 from demo_games.freddy.actions import Action
 from framework_basic.event import Event, EventFactory, EventManager, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
@@ -8,16 +9,21 @@ import numpy as np
 
 
 class FreddyEventType(Enum):
-    observeEvent = 0
-    moveEvent = 1
-    jumpScareEvent = 2
-    characterObservedEvent = 4
-    hitDoorEvent = 5
-    foxyRunEvent = 6
-    playerActionEvent = 7
-    officeInfoEvent = 8
-    knockDoorEvent = 9
+    observeEvent = 0  # from env to character
+    moveEvent = 1  # from character to env
+    jumpScareEvent = 2  # from character to env to player
+    characterObservedEvent = 4  # from character to env to player
+    hitDoorEvent = 5  # from character to env to player
+    foxyRunEvent = 6  # from character to env to player
+    playerActionEvent = 7  # from player to env
+    officeInfoEvent = 8  # from office to env to player and all character
+    # office to player, produce with start hint at same time, and itself
+    # produce end hint
     deviceMovementEvent = 10
+    hintEvent = 11  # from anything to player
+
+
+FreddyEvent = Event[FreddyEventType]
 
 
 class ObserveEvent(StaticEvent[FreddyEventType]):
@@ -34,9 +40,9 @@ class ObserveEvent(StaticEvent[FreddyEventType]):
 knock_door_time = 6
 
 
-class KnockDoorEvent(Event[FreddyEventType]):
+class HitDoorEvent(Event[FreddyEventType]):
     def __init__(self, character: str) -> None:
-        super().__init__(FreddyEventType.knockDoorEvent, knock_door_time)
+        super().__init__(FreddyEventType.hitDoorEvent, knock_door_time)
         self.character = character
 
 
@@ -115,9 +121,6 @@ class OfficeInfoEvent(Event[FreddyEventType]):
         return "{}: {}".format(self.event_type.name, self.office_state)
 
 
-FreddyEvent = Event[FreddyEventType]
-
-
 class FreddyEventManager(EventManager[FreddyEvent]):
 
     def __init__(self) -> None:
@@ -141,13 +144,97 @@ class DeviceMovementEvent(FreddyEvent):
         )
         self.device = device
         self.movement = movement
+        self.funclist: List[Callable] = []
 
     def __repr__(self) -> str:
         return "Event: {} {}".format(
             self.device, self.movement
         )
 
+    def set_end_func(self, end_func: Callable):
+        self.funclist.append(end_func)  # todo: add order
+
+    def end(self) -> List[FreddyEvent]:
+        successors = []
+        for func in self.funclist:
+            result = func()
+            if result is not None:
+                if isinstance(result, Event):
+                    successors.append(result)
+                elif isinstance(result, list):
+                    successors.append(result)
+                else:
+                    assert False, \
+                        "result should be either event or list, got {}".format(
+                            type(result)
+                        )
+        return successors
+
     # TODO:
-    # hook start and end
+    # hook start and end; done
+
+# TODO: create these events in office
+#
 
 # TODO: move to event factory
+
+
+class MonitorEvent(FreddyEvent):
+    # monitor already set on or off
+    # if monitor on, env send camera obs to room and character
+    # loop 0 - 1
+    # monitor_on_movement.end()
+    # loop 0 - 2
+    # -> set office state
+    # generate successor -> env send cam obs
+    # -> hint event: monitor down. to character
+    # loop 0 - 1
+    # update, send obs to you
+    pass
+
+
+class HintEvent(FreddyEvent):
+    def __init__(self, message: str) -> None:
+        super().__init__(FreddyEventType.hintEvent, 1)
+        self.message = message  # FIXME: for cmd only, what if gui?
+
+
+class LightDurationEvent(FreddyEvent):
+    # during duration, the light is on
+    # send to no one
+    pass
+
+    # end:
+    # inform office to turn off light
+    # and a hint: light off if no another LightDurationEvent in obs list for
+    # office
+    # how to judge?
+    # for office,  it should have a list
+    # duration events that exisr
+    # lighton() -> if not duration events: create one
+    # else: renew one
+    def renew(self):
+        # self.life = lifetime_total
+        pass
+
+    # if
+
+
+# for door, the problem is,
+# that the door is considered as open during movement
+# but it uses power
+
+# for office :
+# self.left_door_event = ...
+# if pressed door button when left_door_event is opening
+# end it as unfinished
+# and create a new one : closing
+#
+
+
+# calculate power :
+# if closed in state vector: as closed
+# for character: open if closing / opening
+# or open in state vector
+# the last two dim of vector as left opening / right opening
+# for door duration event:

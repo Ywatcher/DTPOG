@@ -1,6 +1,11 @@
 from typing import Literal
 from demo_games.freddy.enums import EnumAction, EnumCamera, EnumButton
 
+# TODO: distinguish
+#   cmd action;
+#   game menu action (pause, resume, quit)
+#   game action
+
 
 class Action:
     def __init__(self, action_type: EnumAction) -> None:

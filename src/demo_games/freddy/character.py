@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from framework_basic.event import Event
-from demo_games.freddy.events import CharacterObservedEvent, FreddyEvent, FreddyEventType, JumpScareEvent, KnockDoorEvent
+from demo_games.freddy.events import *
 from framework_basic.game_object import GameObject
 
 
@@ -48,9 +48,9 @@ class Character(GameObject):
             self.send_event(observated)
 
     def knock_door(self):
-        knock_door_event = KnockDoorEvent(character=self.name)
-        self._event_factory.add_event(knock_door_event)
-        self.send_event(knock_door_event)
+        hit_door_event = HitDoorEvent(character=self.name)
+        self._event_factory.add_event(hit_door_event)
+        self.send_event(hit_door_event)
 
     def kill_player(self):
         jump_scare_event = JumpScareEvent(

@@ -19,8 +19,6 @@ class Player(GameObject[FreddyEvent]):
         return super().receive_message(m)
 
     def update(self, obs_list: List[FreddyEvent], timer):
-        # do not show the list of event since
-        # it has been showed when received
         self.interface.update_obs(obs_list)
         a: Action = self.interface.get_input()  # get all
         if a is not None:
@@ -93,9 +91,12 @@ class FreddyEnvironment(Environment):
     def get_room(self, room_name: str) -> Room:
         return self._map_dict["room"][room_name]
 
-    def event_from_button(self, button:EnumButton) -> FreddyEvent:
+    def event_from_button(self, button: EnumButton) -> FreddyEvent:
         if button == EnumButton.leftDoor:
             is_left_door_closed = self.get_office.door_closed["left"]
+            # send to office;
+            # office will set door open and create opening event; hint event
+
             pass
         elif button == EnumButton.rightDoor:
             pass
@@ -105,6 +106,10 @@ class FreddyEnvironment(Environment):
             pass
         elif button == EnumButton.monitor:
             pass
+        # TODO: the order of turning on monitor and sending observation event
+        # may be we should let office to do this
+        # office knows whether each camera is on or off
+        #
 
     def convert_event(
         self, event: Event

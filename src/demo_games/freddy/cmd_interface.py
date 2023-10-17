@@ -135,4 +135,5 @@ class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
         # FIXME: use view instead of a List
         self.lock.acquire()
         self._obs_list = obs_list
+        # todo: print hint
         self.lock.release()

@@ -27,32 +27,6 @@ class EnumCamera(Enum):
                 "Kitchen", "Restrooms", "Office"
                 ][self.value]
 
-# public enum EnumObservation {
-    # ShowStage, //0 for b, c, fr
-    # DiningArea, //1 for bonnie, chica, freddy; 2 for b, c close
-    # DiningAreaFar,
-    # DiningAreaClose,
-    # PirateCoveHiding,
-    # PirateCovePeering, //0 for fo-0, 1 for fo-1, 2 .. 3 .. (foxy not here at stage 3)
-    # PirateCoveToEscape,
-    # WestHallA, //5 for b
-    # WestHallB, //7 for b, 3 for foxy ( foxy run)
-    # SupplyCloset, //6 for b
-    # EastHallA, //5 for c, 3 for fr, 6 for c close
-    # EastHallAFar,
-    # EastHallAClose,
-    # EastHallB, //7 for c, 4 for fr
-    # BackstageFar, //3 for b, 4 for b close,
-    # BackstageClose,
-    # Kitchen,
-    # Restrooms, //3 for c, 4 for c close, 2 for fr
-    # RestroomsFar,
-    # RestroomsClose,
-    # OfficeLeft, // bonnie
-    # OfficeRight, // chica
-    # None
-# }
-
 
 class EnumAction(Enum):
     selectCamera = 0
