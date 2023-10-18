@@ -7,6 +7,8 @@ from framework_basic.event import Event, EventFactory, EventManager, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
 import numpy as np
 
+from util.func import n_args
+
 
 class FreddyEventType(Enum):
     observeEvent = 0  # from env to character
@@ -21,9 +23,14 @@ class FreddyEventType(Enum):
     # produce end hint
     deviceMovementEvent = 10
     hintEvent = 11  # from anything to player
+    monitorEvent = 12
+    lightDurationEvent = 13
 
 
 FreddyEvent = Event[FreddyEventType]
+# FIXME
+knock_door_time = 6
+light_duration = 5
 
 
 class ObserveEvent(StaticEvent[FreddyEventType]):
@@ -35,9 +42,6 @@ class ObserveEvent(StaticEvent[FreddyEventType]):
     def end(self):
         return []
 
-
-# FIXME
-knock_door_time = 6
 
 
 class HitDoorEvent(Event[FreddyEventType]):
@@ -144,39 +148,34 @@ class DeviceMovementEvent(FreddyEvent):
         )
         self.device = device
         self.movement = movement
-        self.funclist: List[Callable] = []
 
     def __repr__(self) -> str:
         return "Event: {} {}".format(
             self.device, self.movement
         )
 
-    def set_end_func(self, end_func: Callable):
-        self.funclist.append(end_func)  # todo: add order
 
-    def end(self) -> List[FreddyEvent]:
-        successors = []
-        for func in self.funclist:
-            result = func()
-            if result is not None:
-                if isinstance(result, Event):
-                    successors.append(result)
-                elif isinstance(result, list):
-                    successors.append(result)
-                else:
-                    assert False, \
-                        "result should be either event or list, got {}".format(
-                            type(result)
-                        )
-        return successors
+class LightDurationEvent(FreddyEvent):
+    # during duration, the light is on
+    # send to no one
+    def __init__(self) -> None:
+        super().__init__(
+            FreddyEventType.lightDurationEvent,
+            light_duration
+        )
+    # end:
+    # inform office to turn off light
+    # and a hint: light off if no another LightDurationEvent in obs list for
+    # office
+    # how to judge?
+    # for office,  it should have a list
+    # duration events that exisr
+    # lighton() -> if not duration events: create one
+    # else: renew one
+    def renew(self):
+        self.life_current = self.lifetime_total
 
-    # TODO:
-    # hook start and end; done
-
-# TODO: create these events in office
-#
-
-# TODO: move to event factory
+    # if
 
 
 class MonitorEvent(FreddyEvent):
@@ -199,42 +198,4 @@ class HintEvent(FreddyEvent):
         self.message = message  # FIXME: for cmd only, what if gui?
 
 
-class LightDurationEvent(FreddyEvent):
-    # during duration, the light is on
-    # send to no one
-    pass
 
-    # end:
-    # inform office to turn off light
-    # and a hint: light off if no another LightDurationEvent in obs list for
-    # office
-    # how to judge?
-    # for office,  it should have a list
-    # duration events that exisr
-    # lighton() -> if not duration events: create one
-    # else: renew one
-    def renew(self):
-        # self.life = lifetime_total
-        pass
-
-    # if
-
-
-# for door, the problem is,
-# that the door is considered as open during movement
-# but it uses power
-
-# for office :
-# self.left_door_event = ...
-# if pressed door button when left_door_event is opening
-# end it as unfinished
-# and create a new one : closing
-#
-
-
-# calculate power :
-# if closed in state vector: as closed
-# for character: open if closing / opening
-# or open in state vector
-# the last two dim of vector as left opening / right opening
-# for door duration event:

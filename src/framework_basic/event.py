@@ -1,7 +1,8 @@
-from typing import TypeVar
+from typing import Callable, TypeVar
 from abc import ABC
 from enum import Enum
 from typing import Generic, List, overload
+from util.func import n_args
 # from numpy import inf
 
 
@@ -13,31 +14,54 @@ class Event(ABC, Generic[event_enum_T]):
         self._event_type = event_type
         self.lifetime_total = lifetime_total
         self.life_current = lifetime_total
+        self.funclist: List[Callable] = []
+        self._is_to_end = False
+        self._properly_finish = True
+
+    def set_to_end(self, finish: bool):
+        self._is_to_end = True
+        self._properly_finish = finish
 
     @property
     def event_type(self) -> event_enum_T:
         return self._event_type
 
     def reduce_life(self):
+        if self._is_to_end:
+            self.life_current = -1
         self.life_current -= 1
 
     @property
     def is_alive(self) -> bool:
         return self.life_current >= 0
 
-    @classmethod
-    def end(cls) -> List["Event[event_enum_T]"]:
-        # return successor events
-        return []
+    def set_end_func(self, end_func: Callable):
+        self.funclist.append(end_func)  # todo: add order
+
+    def end(self) -> List["Event[event_enum_T]"]:
+        finished = self._properly_finish
+        successors = []
+        for func in self.funclist:
+            if n_args(func) == 0:
+                result = func()
+            else:
+                result = func(finished)
+            if result is not None:
+                if isinstance(result, Event):
+                    successors.append(result)
+                elif isinstance(result, list):
+                    successors.append(result)
+                else:
+                    assert False, \
+                        "result should be either event or list, got {}".format(
+                            type(result)
+                        )
+        return successors
 
 
 class StaticEvent(Event, Generic[event_enum_T]):
     def __init__(self, event_type: event_enum_T) -> None:
         super().__init__(event_type, lifetime_total=1)
-        self._is_to_end = False
-
-    def set_to_end(self):
-        self._is_to_end = True
 
     def reduce_life(self):
         # do not reduce life

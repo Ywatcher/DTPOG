@@ -1,8 +1,7 @@
 from demo_games.freddy.cmd_interface import FreddyCmdInterface
 from demo_games.freddy.game_objects import FreddyEnvironment
 import time
-
-if __name__ == "__main__":
+def main():
     interface = FreddyCmdInterface()
     e = FreddyEnvironment(interface)
     interface.start()
@@ -12,3 +11,6 @@ if __name__ == "__main__":
             time.sleep(1e-2)  # each frame: 10 ms
     finally:
         interface.join()
+
+if __name__ == "__main__":
+    main()
