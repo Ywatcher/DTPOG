@@ -1,13 +1,9 @@
 from enum import Enum
-import re
-from sys import call_tracing
 from typing import Callable, List, Literal, Tuple, Union
 from demo_games.freddy.actions import Action
 from framework_basic.event import Event, EventFactory, EventManager, StaticEvent
 from demo_games.freddy.enums import EnumCamera, EnumAction, EnumButton
 import numpy as np
-
-from util.func import n_args
 
 
 class FreddyEventType(Enum):
@@ -23,7 +19,7 @@ class FreddyEventType(Enum):
     # produce end hint
     deviceMovementEvent = 10
     hintEvent = 11  # from anything to player
-    monitorEvent = 12
+    # monitorEvent = 12
     lightDurationEvent = 13
 
 
@@ -41,7 +37,6 @@ class ObserveEvent(StaticEvent[FreddyEventType]):
 
     def end(self):
         return []
-
 
 
 class HitDoorEvent(Event[FreddyEventType]):
@@ -125,17 +120,6 @@ class OfficeInfoEvent(Event[FreddyEventType]):
         return "{}: {}".format(self.event_type.name, self.office_state)
 
 
-class FreddyEventManager(EventManager[FreddyEvent]):
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._event_factory: EventFactory[FreddyEvent] = EventFactory(self)
-
-    @property
-    def event_factory(self) -> EventFactory[FreddyEvent]:
-        return self._event_factory
-
-
 class DeviceMovementEvent(FreddyEvent):
     def __init__(
         self, lifetime_total: int,
@@ -157,39 +141,14 @@ class DeviceMovementEvent(FreddyEvent):
 
 class LightDurationEvent(FreddyEvent):
     # during duration, the light is on
-    # send to no one
     def __init__(self) -> None:
         super().__init__(
             FreddyEventType.lightDurationEvent,
             light_duration
         )
-    # end:
-    # inform office to turn off light
-    # and a hint: light off if no another LightDurationEvent in obs list for
-    # office
-    # how to judge?
-    # for office,  it should have a list
-    # duration events that exisr
-    # lighton() -> if not duration events: create one
-    # else: renew one
+
     def renew(self):
         self.life_current = self.lifetime_total
-
-    # if
-
-
-class MonitorEvent(FreddyEvent):
-    # monitor already set on or off
-    # if monitor on, env send camera obs to room and character
-    # loop 0 - 1
-    # monitor_on_movement.end()
-    # loop 0 - 2
-    # -> set office state
-    # generate successor -> env send cam obs
-    # -> hint event: monitor down. to character
-    # loop 0 - 1
-    # update, send obs to you
-    pass
 
 
 class HintEvent(FreddyEvent):
@@ -198,4 +157,12 @@ class HintEvent(FreddyEvent):
         self.message = message  # FIXME: for cmd only, what if gui?
 
 
+class FreddyEventManager(EventManager[FreddyEvent]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._event_factory: EventFactory[FreddyEvent] = EventFactory(self)
+
+    @property
+    def event_factory(self) -> EventFactory[FreddyEvent]:
+        return self._event_factory

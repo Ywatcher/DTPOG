@@ -113,10 +113,16 @@ class Office(Room):  # player
                             pass
                         elif action.button == EnumButton.rightDoor:
                             pass
-                    # produce device movement event
-            # if light off or light on:
-            # send light off event
-            # light off is successor of light on
+                        elif action.button == EnumButton.monitor:
+                            pass
+                        elif action.button == EnumButton.leftLight:
+                            pass
+                        elif action.button == EnumButton.rightLight:
+                            pass
+                        else:
+                            raise ValueError("invalid button value: \
+                                             {}".format(action.button))
+
             # if light on, send observe event to ...
             pass
         # TODO: recalculate device usage
@@ -137,10 +143,6 @@ class Office(Room):  # player
     # def produce movement event:
     # create movement event
     # create hint event
-
-    # def change state
-    # self.current_camera_name = ...
-    # self.to_change_view = True
 
     def _door_close_end(self, position: Literal["left", "right"]):
         hint_event = HintEvent(message="{} door closed.".format(position))
@@ -238,8 +240,33 @@ class Office(Room):  # player
     def _monitor_down_start(self):
         pass
 
-    def _light_end(self, position:Literal["left", "right"]):
-        pass
+    def _light_end(self, position: Literal["left", "right"]):
+        hint_event = HintEvent(message="{} light off".format(position))
+        if position == "left":
+            self.state[2] = 0
+        elif position == "right":
+            self.state[3] = 0
+        self._event_factory.add_event(hint_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
+
+    def _light_start(self, position: Literal["left", "right"]):
+        hint_event = HintEvent(message="{} light on".format(position))
+        if position == "left":
+            self.state[2] = 1
+        elif position == "right":
+            self.state[3] = 1
+        if self.light_event[position] is not None:
+            self.light_event[position].renew()
+        else:
+            light_on_event = LightDurationEvent()
+            # when ends, inform office to turn off light
+            light_on_event.set_end_func(self._light_end)
+            self.light_event[position] = light_on_event
+            self._event_factory.add_event(light_on_event)
+        self._event_factory.add_event(hint_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
 
     def refresh_event_buffer(self):
         super().refresh_event_buffer()

@@ -33,4 +33,23 @@ for office update on action
                  FIXME
                  TODO: if press monitor button, switch current view and
                  current obs, if current door open, send to hall
+monitor:
+monitor already set on or off
+if monitor on, env send camera obs to room and character
+loop 0 - 1
+monitor\_on\_movement.end()
+loop 0 - 2
+-> set office state
+generate successor -> env send cam obs
+FIXME
 
+-> hint event: monitor down. to character
+loop 0 - 1
+update, send obs to you
+
+
+
+
+todo:
+use list or dict to replace ifelse
+especially for those with enum as conditions
