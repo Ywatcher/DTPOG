@@ -1,9 +1,11 @@
 from abc import ABC
 from enum import Enum
-from typing import Dict, Union, List
+from typing import Dict, Optional, Union, List
 from demo_games.freddy.actions import *
 from user_interfaces.cmd_interface import InputParser, CMDInterface
 from demo_games.freddy.events import *
+from user_interfaces.result import *
+from demo_games.freddy.game_info.game_map import *
 
 
 class View(ABC):
@@ -69,16 +71,21 @@ _str2cam: Dict[str, EnumCamera] = {
 # message
 
 
-class FreddyCmdParser(InputParser):
+class InterfaceAction(Enum):
+    checkViewAction = 0
+    checkMapAction = 1
 
-    class FreddyCmdActions(Enum):
-        checkViewAction = 0
+
+FreddyParseResult = Union[
+     Action, MenuAction, Message, InterfaceAction
+]
+
+
+class FreddyCmdParser(InputParser[FreddyParseResult]):
 
     def __init__(self) -> None:
         super().__init__()
         self._monitor_up = False
-        self.CheckViewAction = \
-            FreddyCmdParser.FreddyCmdActions.checkViewAction
 
     def monitor_up(self):
         self._monitor_up = True
@@ -86,9 +93,7 @@ class FreddyCmdParser(InputParser):
     def monitor_down(self):
         self._monitor_up = False
 
-    def parse(self, s: str) -> Union[
-            Action,
-            None, InputParser._TerminateAction]:
+    def parse(self, s: str) -> Optional[FreddyParseResult]:
         command_list = [w for w in s.split(' ') if len(w) > 0]
         if len(command_list) == 0:
             return None
@@ -97,10 +102,12 @@ class FreddyCmdParser(InputParser):
         if command_name in ["h", "help"]:
             return None
         elif command_name in ["q", "quit", "exit"]:
-            return self.TerminateAction
+            return MenuAction.quit
         elif command_name in ["v", "view"]:
             # view current obs
-            return self.CheckViewAction
+            return InterfaceAction.checkViewAction
+        elif command_name in ["c"]:
+            return InterfaceAction.checkMapAction
         elif command_name in ["m"]:
             action = PressButtonAction(EnumButton.monitor)
             return action
@@ -113,15 +120,15 @@ class FreddyCmdParser(InputParser):
         elif command_name in ["rd"]:
             action = PressButtonAction(EnumButton.rightDoor)
         elif command_name in ["s"]:
-            if args[0] in _str2cam.keys():
-                camera_name = _str2cam[args[0]]
+            if len(args) > 0 and args[0].lower() in _str2cam.keys():
+                camera_name = _str2cam[args[0].lower()]
                 return SelectCameraAction(camera_name)
             else:
-                return None
+                return Message("Invalid args: {}".format(args))
 #         elif self._monitor_up:
 #             return SelectCameraAction(EnumCamera.CAM1A)
         else:
-            return PressButtonAction(EnumButton.monitor)
+            return InvalidCommandMessage(s)
 
 
 class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
@@ -145,18 +152,25 @@ class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
         self.lock.release()
 
     def respond(self, parsed_input_obj) -> bool:
-        # FIXME : -> respond on cmd action
-        if self.input_parser.TerminateAction == parsed_input_obj:
+        if parsed_input_obj == MenuAction.quit:
             self.queue.put(FreddyQuitAction())
             print("quit game")
             return True
-        elif self.input_parser.CheckViewAction == parsed_input_obj:
+        elif parsed_input_obj == InterfaceAction.checkViewAction:
             print("check view")
             self.lock.acquire()
             print(self._obs_list)
             self.lock.release()
             # if len(self._obs_list is 0) dont print
             return False
+        elif parsed_input_obj == InterfaceAction.checkMapAction:
+
+            self.lock.acquire()
+            print(print_map())
+            self.lock.release()
+            return False
+        elif isinstance(parsed_input_obj, Message):
+            print(parsed_input_obj)
         else:
             self.queue.put(parsed_input_obj)
             return False

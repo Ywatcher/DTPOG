@@ -4,25 +4,15 @@ from abc import ABC
 from typing import List, Generic, Type, TypeVar
 from demo_games.freddy.actions import FreddyQuitAction
 from framework_basic.event import Event
-
+from user_interfaces.result import *
 
 # TODO: class CmdAction
 
-class InputParser(ABC):
 
-    class _TerminateAction:
-        def __eq__(self, __value: object) -> bool:
-            return isinstance(__value, InputParser._TerminateAction)
-
-    def __init__(self) -> None:
-        self._terminateAction = InputParser._TerminateAction()
-
-    @property
-    def TerminateAction(self) -> "InputParser._TerminateAction":
-        return self._terminateAction
+class InputParser(ABC, Generic[ParseResult]):
 
     @classmethod
-    def parse(cls, s: str) -> object:
+    def parse(cls, s: str) -> ParseResult:
         pass
 
 
@@ -56,7 +46,7 @@ class CMDInterface(ABC, Generic[parser_T]):
                     break
 
     def respond(self, parsed_input_obj) -> bool:
-        if self.input_parser.TerminateAction != parsed_input_obj:
+        if parsed_input_obj == MenuAction.quit:
             self.queue.put(parsed_input_obj)
             return False
         else:
