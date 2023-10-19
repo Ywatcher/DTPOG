@@ -1,7 +1,7 @@
 from re import A
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
-from demo_games.freddy.actions import PressButtonAction
+from demo_games.freddy.actions import PressButtonAction, SelectCameraAction
 from framework_basic.event import Event
 from demo_games.freddy.events import *
 from framework_basic.game_object import GameObject
@@ -139,15 +139,15 @@ class Office(Room):  # player
                                 self.next_movement["monitor"] = "up"
                                 self._monitor_down_start()
                         elif action.button == EnumButton.leftLight:
-                            pass
+                            self._light_start("left")
                         elif action.button == EnumButton.rightLight:
-                            pass
+                            self._light_start("right")
                         else:
                             raise ValueError("invalid button value: \
                                              {}".format(action.button))
+                    elif isinstance(action, SelectCameraAction):
+                        self.current_camera_name = action.camera_name
 
-            # if light on, send observe event to ...
-            pass
         # TODO: recalculate device usage
 
         # if perspective is changed or the game started,

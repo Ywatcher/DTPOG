@@ -48,6 +48,27 @@ class OfficeView(View):
                         self.character_obs == __value.character_obs
 
 
+_str2cam: Dict[str, EnumCamera] = {
+    "1a": EnumCamera.CAM1A,
+    "1b": EnumCamera.CAM1B,
+    "1c": EnumCamera.CAM1C,
+    "2a": EnumCamera.CAMs2A,
+    "2b": EnumCamera.CAMs2B,
+    "3": EnumCamera.CAM3,
+    "4a": EnumCamera.CAMs4A,
+    "4b": EnumCamera.CAMs4B,
+    "5": EnumCamera.CAM5,
+    "6": EnumCamera.CAM6,
+    "7": EnumCamera.CAM7
+}
+
+# Result of parser:
+# menu action
+# game action
+# interface action
+# message
+
+
 class FreddyCmdParser(InputParser):
 
     class FreddyCmdActions(Enum):
@@ -68,21 +89,37 @@ class FreddyCmdParser(InputParser):
     def parse(self, s: str) -> Union[
             Action,
             None, InputParser._TerminateAction]:
-        command_list = s.split(' ')
+        command_list = [w for w in s.split(' ') if len(w) > 0]
+        if len(command_list) == 0:
+            return None
         command_name = command_list[0]
         args = command_list[1:]
-        if command_name in["h" , "help"]:
+        if command_name in ["h", "help"]:
             return None
         elif command_name in ["q", "quit", "exit"]:
             return self.TerminateAction
         elif command_name in ["v", "view"]:
             # view current obs
             return self.CheckViewAction
-        if command_name in ["m"]:
+        elif command_name in ["m"]:
             action = PressButtonAction(EnumButton.monitor)
             return action
-        elif self._monitor_up:
-            return SelectCameraAction(EnumCamera.CAM1A)
+        elif command_name in ["ll"]:
+            action = PressButtonAction(EnumButton.leftLight)
+        elif command_name in ["rl"]:
+            action = PressButtonAction(EnumButton.rightLight)
+        elif command_name in ["ld"]:
+            action = PressButtonAction(EnumButton.leftDoor)
+        elif command_name in ["rd"]:
+            action = PressButtonAction(EnumButton.rightDoor)
+        elif command_name in ["s"]:
+            if args[0] in _str2cam.keys():
+                camera_name = _str2cam[args[0]]
+                return SelectCameraAction(camera_name)
+            else:
+                return None
+#         elif self._monitor_up:
+#             return SelectCameraAction(EnumCamera.CAM1A)
         else:
             return PressButtonAction(EnumButton.monitor)
 
