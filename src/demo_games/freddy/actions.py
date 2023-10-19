@@ -16,11 +16,12 @@ class PressButtonAction(Action):
     def __init__(
         self,
         button: EnumButton,
-        movement: Literal["up", "down", "default"] = "default"
     ):
         super().__init__(EnumAction.PressButton)
         self.button = button
-        self.movement = movement
+
+    def __repr__(self) -> str:
+        return "PressButtonAction: {}".format(self.button.name)
 
 
 class SelectCameraAction(Action):

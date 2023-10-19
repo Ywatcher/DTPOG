@@ -1,3 +1,4 @@
+from re import A
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Iterable, TypedDict
 from demo_games.freddy.actions import PressButtonAction
@@ -6,6 +7,7 @@ from demo_games.freddy.events import *
 from framework_basic.game_object import GameObject
 
 door_movement_time = 5
+monitor_movement_time = 5
 
 
 class Room(GameObject[FreddyEvent]):
@@ -37,6 +39,11 @@ class Office(Room):  # player
         self.state = np.array([
             0, 0, 0, 0, 0, 100, 0, 0, 0
         ])
+        self.next_movement = {
+            "ldoor": "down",
+            "rdoor": "down",
+            "monitor": "up"
+        }
         self.current_camera_name: EnumCamera = EnumCamera.CAM1A  # showstage
         self.current_obs_event: ObserveEvent = None
         self.to_send_obs = True
@@ -108,13 +115,29 @@ class Office(Room):  # player
                 if event.event_type == FreddyEventType.playerActionEvent:
                     assert isinstance(event, PlayerActionEvent)
                     action = event.action
+                    # print(action)
                     if isinstance(action, PressButtonAction):
                         if action.button == EnumButton.leftDoor:
-                            pass
+                            if self.next_movement["ldoor"] == "up":
+                                self.next_movement["ldoor"] = "down"
+                                self._door_open_start("left")
+                            else:
+                                self.next_movement["ldoor"] = "up"
+                                self._door_close_start("left")
                         elif action.button == EnumButton.rightDoor:
-                            pass
+                            if self.next_movement["rdoor"] == "up":
+                                self.next_movement["rdoor"] = "down"
+                                self._door_open_start("right")
+                            else:
+                                self.next_movement["rdoor"] = "up"
+                                self._door_close_start("right")
                         elif action.button == EnumButton.monitor:
-                            pass
+                            if self.next_movement["monitor"] == "up":
+                                self.next_movement["monitor"] = "down"
+                                self._monitor_up_start()
+                            else:
+                                self.next_movement["monitor"] = "up"
+                                self._monitor_down_start()
                         elif action.button == EnumButton.leftLight:
                             pass
                         elif action.button == EnumButton.rightLight:
@@ -229,16 +252,64 @@ class Office(Room):  # player
         self.to_send_obs = True
 
     def _monitor_up_end(self):
-        pass
+        hint_event = HintEvent(message="monitor is up.")
+        self.state[4] = 1
+        self.state[8] = 0
+        self._event_factory.add_event(hint_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
 
     def _monitor_up_start(self):
-        pass
+        hint_event = HintEvent(message="turning up monitor...")
+        self.state[4] = 1
+        self.state[8] = 1
+        if self.monitor_event is not None:
+            assert self.monitor_event.movement == "down"
+            self.monitor_event.set_to_end(finish=False)
+        monitor_up_event = DeviceMovementEvent(
+            lifetime_total=monitor_movement_time,
+            device="monitor",
+            movement="up"
+        )
+        monitor_up_event.set_end_func(
+            lambda finished:
+            self._monitor_up_end()
+        )
+        self.monitor_event = monitor_up_event
+        self._event_factory.add_event(hint_event)
+        self._event_factory.add_event(monitor_up_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
 
     def _monitor_down_end(self):
-        pass
+        hint_event = HintEvent(message="monitor is down.")
+        self.state[4] = 0
+        self.state[8] = 0
+        self._event_factory.add_event(hint_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
 
     def _monitor_down_start(self):
-        pass
+        hint_event = HintEvent(message="turning down monitor...")
+        self.state[4] = 1
+        self.state[8] = 1
+        if self.monitor_event is not None:
+            assert self.monitor_event.movement == "up"
+            self.monitor_event.set_to_end(finish=False)
+        monitor_down_event = DeviceMovementEvent(
+            lifetime_total=monitor_movement_time,
+            device="monitor",
+            movement="down"
+        )
+        monitor_down_event.set_end_func(
+            lambda finished:
+            self._monitor_down_end()
+        )
+        self.monitor_event = monitor_down_event
+        self._event_factory.add_event(hint_event)
+        self._event_factory.add_event(monitor_down_event)
+        self.send_event(hint_event)
+        self.to_send_obs = True
 
     def _light_end(self, position: Literal["left", "right"]):
         hint_event = HintEvent(message="{} light off".format(position))

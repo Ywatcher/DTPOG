@@ -81,13 +81,6 @@ class FreddyCmdParser(InputParser):
         if command_name in ["m"]:
             action = PressButtonAction(EnumButton.monitor)
             return action
-        elif command_name in ["mu"]:
-            # if monitor down and mu, up and md, or "m"
-            action = PressButtonAction(EnumButton.monitor, "up")
-            return action
-        elif command_name in ["md"]:
-            action = PressButtonAction(EnumButton.monitor, "down")
-            return action
         elif self._monitor_up:
             return SelectCameraAction(EnumCamera.CAM1A)
         else:
