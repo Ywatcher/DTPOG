@@ -21,12 +21,13 @@ class FreddyEventType(Enum):
     hintEvent = 11  # from anything to player
     # monitorEvent = 12
     lightDurationEvent = 13
+    currentViewEvent = 14
 
 
 FreddyEvent = Event[FreddyEventType]
 # FIXME
-knock_door_time = 6
-light_duration = 5
+knock_door_time = 600
+light_duration = 500
 
 
 class ObserveEvent(StaticEvent[FreddyEventType]):
@@ -110,11 +111,13 @@ class FoxyRunEvent(Event[FreddyEventType]):
 
 class OfficeInfoEvent(Event[FreddyEventType]):
     def __init__(self,
-                 office_state: np.ndarray) -> None:
+                 office_state: np.ndarray,
+                 current_view:EnumCamera) -> None:
         super().__init__(FreddyEventType.officeInfoEvent, lifetime_total=1)
         # TODO: use static event instead
         # now: event with lifetime 1
         self.office_state = office_state
+        self.current_view = current_view
 
     def __repr__(self) -> str:
         return "{}: {}".format(self.event_type.name, self.office_state)
@@ -155,7 +158,6 @@ class HintEvent(FreddyEvent):
     def __init__(self, message: str) -> None:
         super().__init__(FreddyEventType.hintEvent, 1)
         self.message = message  # FIXME: for cmd only, what if gui?
-
 
 class FreddyEventManager(EventManager[FreddyEvent]):
 

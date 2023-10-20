@@ -6,8 +6,8 @@ from framework_basic.event import Event
 from demo_games.freddy.events import *
 from framework_basic.game_object import GameObject
 
-door_movement_time = 5
-monitor_movement_time = 5
+door_movement_time = 20
+monitor_movement_time = 20
 
 
 class Room(GameObject[FreddyEvent]):
@@ -115,7 +115,6 @@ class Office(Room):  # player
                 if event.event_type == FreddyEventType.playerActionEvent:
                     assert isinstance(event, PlayerActionEvent)
                     action = event.action
-                    # print(action)
                     if isinstance(action, PressButtonAction):
                         if action.button == EnumButton.leftDoor:
                             if self.next_movement["ldoor"] == "up":
@@ -158,8 +157,9 @@ class Office(Room):  # player
             self.current_obs_event = ObserveEvent(self.current_view)
             self._event_factory.add_event(self.current_obs_event)
             self.send_event(self.current_obs_event)
+        self.to_send_obs = False
         # state event should be at last
-        info_event = OfficeInfoEvent(self.state)
+        info_event = OfficeInfoEvent(self.state, self.current_view)
         self._event_factory.add_event(info_event)
         self.send_event(info_event)
 
@@ -332,7 +332,9 @@ class Office(Room):  # player
         else:
             light_on_event = LightDurationEvent()
             # when ends, inform office to turn off light
-            light_on_event.set_end_func(self._light_end)
+            light_on_event.set_end_func(
+                lambda finished: self._light_end(position)
+            )
             self.light_event[position] = light_on_event
             self._event_factory.add_event(light_on_event)
         self._event_factory.add_event(hint_event)

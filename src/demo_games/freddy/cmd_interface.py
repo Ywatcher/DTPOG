@@ -5,7 +5,7 @@ from demo_games.freddy.actions import *
 from user_interfaces.cmd_interface import InputParser, CMDInterface
 from demo_games.freddy.events import *
 from user_interfaces.result import *
-from demo_games.freddy.game_info.game_map import *
+from demo_games.freddy.game_map import *
 
 
 class View(ABC):
@@ -113,12 +113,16 @@ class FreddyCmdParser(InputParser[FreddyParseResult]):
             return action
         elif command_name in ["ll"]:
             action = PressButtonAction(EnumButton.leftLight)
+            return action
         elif command_name in ["rl"]:
             action = PressButtonAction(EnumButton.rightLight)
+            return action
         elif command_name in ["ld"]:
             action = PressButtonAction(EnumButton.leftDoor)
+            return action
         elif command_name in ["rd"]:
             action = PressButtonAction(EnumButton.rightDoor)
+            return action
         elif command_name in ["s"]:
             if len(args) > 0 and args[0].lower() in _str2cam.keys():
                 camera_name = _str2cam[args[0].lower()]
@@ -166,7 +170,7 @@ class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
         elif parsed_input_obj == InterfaceAction.checkMapAction:
 
             self.lock.acquire()
-            print(print_map())
+            print(print_map(self.current_view))
             self.lock.release()
             return False
         elif isinstance(parsed_input_obj, Message):
@@ -180,4 +184,7 @@ class FreddyCmdInterface(CMDInterface[FreddyCmdParser]):
         self.lock.acquire()
         self._obs_list = obs_list
         # todo: print hint
+        for obs in obs_list:
+            if isinstance(obs, OfficeInfoEvent):
+                self.current_view = obs.current_view
         self.lock.release()

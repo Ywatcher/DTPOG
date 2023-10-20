@@ -53,3 +53,9 @@ update, send obs to you
 todo:
 use list or dict to replace ifelse
 especially for those with enum as conditions
+
+TUI
+split teriminal:
+https://blog.marcusj.org/creating-a-basic-split-panel-console-interface-in-python-with-io
+to set hotkey to resize window:
+https://www.geeksforgeeks.org/how-to-create-a-hotkey-in-python/
